@@ -2,9 +2,18 @@
 #[macro_use]
 extern crate serde_derive;
 
+use serde_json::{json, Value};
+
 use ws::{connect, Handler, Sender, Handshake, Result, Message, CloseCode};
 use std::i64;
 use regex::Regex;
+//use test_client::{runtime::{AccountId, Block, Hash, Index, Extrinsic, Transfer}, AccountKeyring::{self, *}};
+use keyring::AccountKeyring;
+
+mod extrinsic;
+use crate::extrinsic::{Extrinsic, Transfer};
+use hex;
+use parity_codec::{Encode, Decode};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonBasic {
@@ -19,6 +28,7 @@ struct JsonBasic {
 struct Client {
     out: Sender,
     blocknumber: i64,
+    id: i64,
 }
 
 // We implement the Handler trait for Client so that we can get more
@@ -33,7 +43,31 @@ impl Handler for Client {
     fn on_open(&mut self, _: Handshake) -> Result<()> {
         // Now we don't need to call unwrap since `on_open` returns a `Result<()>`.
         // If this call fails, it will only result in this connection disconnecting.
-        self.out.send(r#"{"method": "chain_subscribeNewHead", "params": null, "jsonrpc": "2.0", "id": 0}"#)
+        //self.out.send(r#"{"method": "chain_subscribeNewHead", "params": null, "jsonrpc": "2.0", "id": 0}"#);
+
+        // send a transaction
+        let nonce = 0;
+        let tx = Transfer {
+            amount: 42,
+            nonce,
+            from: AccountKeyring::Alice.into(),
+            to: AccountKeyring::Bob.into(),
+        };
+        let signature = AccountKeyring::from_public(&tx.from).unwrap().sign(&tx.encode()).into();
+        let xt = Extrinsic::Transfer(tx, signature).encode();
+        let mut xthex = hex::encode(xt);
+        xthex.insert_str(0, "0x");
+        let jsonreq = json!({
+            "method": "author_submitAndWatchExtrinsic",
+            "params": [xthex], // params,
+            "jsonrpc": "2.0",
+            "id": self.id.to_string(),
+        });
+        println!("sending extrinsic: {}", jsonreq.to_string());
+        self.out.send(jsonreq.to_string()).unwrap();
+
+        Ok(())
+        
     }
 
     // `on_message` is roughly equivalent to the Handler closure. It takes a `Message`
@@ -71,5 +105,5 @@ impl Handler for Client {
 
 fn main() {
   // Now, instead of a closure, the Factory returns a new instance of our Handler.
-  connect("ws://127.0.0.1:9944", |out| Client { out: out, blocknumber: 0 } ).unwrap()
+  connect("ws://127.0.0.1:9944", |out| Client { out: out, blocknumber: 0, id: 0 } ).unwrap()
 }
