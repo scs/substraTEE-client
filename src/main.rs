@@ -11,9 +11,11 @@ use regex::Regex;
 use keyring::AccountKeyring;
 
 mod extrinsic;
-use crate::extrinsic::{Extrinsic, Transfer};
+use crate::extrinsic::{xt};
 use hex;
 use parity_codec::{Encode, Decode};
+use transaction_pool::txpool::ChainApi as PoolChainApi;
+use runtime_primitives::{generic, traits};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonBasic {
@@ -46,17 +48,13 @@ impl Handler for Client {
         //self.out.send(r#"{"method": "chain_subscribeNewHead", "params": null, "jsonrpc": "2.0", "id": 0}"#);
 
         // send a transaction
-        let nonce = 0;
-        let tx = Transfer {
-            amount: 42,
-            nonce,
-            from: AccountKeyring::Alice.into(),
-            to: AccountKeyring::Bob.into(),
-        };
-        let signature = AccountKeyring::from_public(&tx.from).unwrap().sign(&tx.encode()).into();
-        let xt = Extrinsic::Transfer(tx, signature).encode();
-        let mut xthex = hex::encode(xt);
+        let xt= xt();
+        println!("extrinsic: {:?}", xt);
+
+        let mut xthex = hex::encode(xt.encode());
+
         xthex.insert_str(0, "0x");
+
         let jsonreq = json!({
             "method": "author_submitAndWatchExtrinsic",
             "params": [xthex], // params,
