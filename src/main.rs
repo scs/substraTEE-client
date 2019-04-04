@@ -1,6 +1,8 @@
 
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate hex_literal;
 
 use serde_json::{json, Value};
 
@@ -12,6 +14,8 @@ use keyring::AccountKeyring;
 
 mod extrinsic;
 use crate::extrinsic::{xt};
+
+#[macro_use]
 use hex;
 use parity_codec::{Encode, Decode};
 use transaction_pool::txpool::ChainApi as PoolChainApi;
@@ -56,7 +60,7 @@ impl Handler for Client {
         xthex.insert_str(0, "0x");
 
         let jsonreq = json!({
-            "method": "author_submitAndWatchExtrinsic",
+            "method": "author_submitExtrinsic", //AndWatchExtrinsic",
             "params": [xthex], // params,
             "jsonrpc": "2.0",
             "id": self.id.to_string(),
