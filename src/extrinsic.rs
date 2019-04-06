@@ -145,9 +145,9 @@ impl Crypto for Sr25519 {
 	fn public_from_pair(pair: &Self::Pair) -> Vec<u8> { (&pair.public().0[..]).to_owned() }
 }
 
-fn sign(xt: CheckedExtrinsic, key: &sr25519::Pair) -> UncheckedExtrinsic {
+fn sign(xt: CheckedExtrinsic, key: &sr25519::Pair, genesis_hash: Hash) -> UncheckedExtrinsic {
 	use parity_codec::Encode;
-	let genesis_hash: Hash = hex!["58afaad82f5a80ecdc8e974f5d88c4298947260fb05e34f84a9eed18ec5a78f9"].into();
+	//let genesis_hash: Hash = hex!["58afaad82f5a80ecdc8e974f5d88c4298947260fb05e34f84a9eed18ec5a78f9"].into();
 	match xt.signed {
 		Some((signed, index)) => {
 			let era = Era::immortal();
@@ -173,8 +173,8 @@ fn sign(xt: CheckedExtrinsic, key: &sr25519::Pair) -> UncheckedExtrinsic {
 }
 
 
-
-pub fn transfer(from: &str, to: &str, amount: u64, index: u64) -> UncheckedExtrinsic {
+// see https://wiki.parity.io/Extrinsic
+pub fn transfer(from: &str, to: &str, amount: u64, index: u64, genesis_hash: Hash) -> UncheckedExtrinsic {
 		let signer = Sr25519::pair_from_suri(from, Some(""));
 
 		let to = sr25519::Public::from_string(to).ok().or_else(||
@@ -190,7 +190,15 @@ pub fn transfer(from: &str, to: &str, amount: u64, index: u64) -> UncheckedExtri
 		let function = Call::Balances(BalancesCall::transfer(to.into(), amount));
 
 		let era = Era::immortal();
-		let genesis_hash: Hash = hex!["61b81c075e1e54b17a2f2d685a3075d3e5f5c7934456dd95332e68dd751a4b40"].into();
+
+		println!("using genesis hash: {:?}", genesis_hash);
+/*		let mut gh: [u8; 32] = Default::default();
+    	gh.copy_from_slice(hex::decode(genesis_hash).unwrap().as_ref());
+		let genesis_hash = Hash::from(gh);
+		println!("using genesis hash to Hash: {:?}", gh);
+*/
+		//let genesis_hash: Hash = hex::decode(genesis_hash).unwrap();
+		//let genesis_hash: Hash = hex!["61b81c075e1e54b17a2f2d685a3075d3e5f5c7934456dd95332e68dd751a4b40"].into();
 //			let genesis_hash: Hash = hex!["58afaad82f5a80ecdc8e974f5d88c4298947260fb05e34f84a9eed18ec5a78f9"].into();
 		let raw_payload = (Compact(index), function, era, genesis_hash);
 		let signature = raw_payload.using_encoded(|payload| if payload.len() > 256 {
