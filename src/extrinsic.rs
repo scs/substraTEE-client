@@ -174,17 +174,18 @@ fn sign(xt: CheckedExtrinsic, key: &sr25519::Pair) -> UncheckedExtrinsic {
 
 
 
-pub fn xt() -> UncheckedExtrinsic {
-		let signer = Sr25519::pair_from_suri("//Alice", Some(""));
+pub fn transfer(from: &str, to: &str, amount: u64, index: u64) -> UncheckedExtrinsic {
+		let signer = Sr25519::pair_from_suri(from, Some(""));
 
-		let to = "//Bob";
 		let to = sr25519::Public::from_string(to).ok().or_else(||
 			sr25519::Pair::from_string(to, Some("")).ok().map(|p| p.public())
 		).expect("Invalid 'to' URI; expecting either a secret URI or a public URI.");
-		let amount = str::parse::<Balance>("42")
-			.expect("Invalid 'amount' parameter; expecting an integer.");
-		let index = str::parse::<Index>("0")
-			.expect("Invalid 'index' parameter; expecting an integer.");
+		let amount = Balance::from(amount);
+		let index = Index::from(index);
+		//let amount = str::parse::<Balance>("42")
+		//	.expect("Invalid 'amount' parameter; expecting an integer.");
+		//let index = str::parse::<Index>("0")
+		//	.expect("Invalid 'index' parameter; expecting an integer.");
 
 		let function = Call::Balances(BalancesCall::transfer(to.into(), amount));
 

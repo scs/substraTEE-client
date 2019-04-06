@@ -13,7 +13,7 @@ use regex::Regex;
 use keyring::AccountKeyring;
 
 mod extrinsic;
-use crate::extrinsic::{xt};
+use crate::extrinsic::{transfer};
 
 #[macro_use]
 use hex;
@@ -52,19 +52,25 @@ impl Handler for Client {
         //self.out.send(r#"{"method": "chain_subscribeNewHead", "params": null, "jsonrpc": "2.0", "id": 0}"#);
 
         // send a transaction
-        let xt= xt();
+        
+        let xt= transfer("//Alice", "//Bob", 42, 0);
         println!("extrinsic: {:?}", xt);
 
         let mut xthex = hex::encode(xt.encode());
 
         xthex.insert_str(0, "0x");
-
+        
         let jsonreq = json!({
-            "method": "author_submitExtrinsic", //AndWatchExtrinsic",
-            "params": [xthex], // params,
+            "method": "author_submitAndWatchExtrinsic", //AndWatchExtrinsic",
+        //    "params": [xthex], // params,
+            "params": ["0x210281ffd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d9e973fa595bfa4e204e29e0240b1a459ab45e9de35ae87a92f8041e06a41371304e8e9b9e56ca27db5db6d7410d7344dd233a9967d4d137027761adbbaa7810e00000300ff8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48a8"],
+      //    "params": ["0x210281ffd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d9e77d0ae636b3b969b4a25214460f46c34f9b7fd0e5bb79b15622438df4a09602360e8056a2e00cf23ab47fbba49b7b73f9cde717ef192cb8a2d6ec1eb7b350300000300ff8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48a8"],
+        //    "params": ["0x2902210281ffd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d4618dc029a4a6d9ae193e9522be2ac7061c3fb5598bf381b8b5ec3ba1fdf5574c87d9a0cf9f35849303974484b5edb35999284349678bce1d11ef460b69f720100000300ff8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48a8"],
             "jsonrpc": "2.0",
             "id": self.id.to_string(),
         });
+        
+
         println!("sending extrinsic: {}", jsonreq.to_string());
         self.out.send(jsonreq.to_string()).unwrap();
 
