@@ -1,16 +1,18 @@
 # substrate-client
-substrate client connecting to substrate node
+substrate client connecting to substrate node using websocket interface
 
-WORK IN PROGRESS
+**WORK IN PROGRESS**
 
-  * can query genesis_hash
-  * can now send a transfer from Alice to Bob, 
-    * but nonce is still adjusted manually, not read from state
-# Goals
-[ ] subscribe to events
+What works:
+  1. query genesis_hash
+  1. query account nonce
+  1. submit and and subscribe extrinsic (transfer from Alice to Bob, 42 units)
+  1. watch extrinsic getting finalized
+  
+TODO:
+  1. CLI options (similar to subkey `transfer` syntax)
+  1. subscribe and watch events
+  1. (maybe?) refactoring to per-use-case state machine architecture
+  1. refactoring to ws-library / CLI binary
+  1. (nice to have) dynamic API using metadata  
 
-[x] send extrinsics/transactions
-
-[ ] browse metadata
-
-[ ] query storage by name
