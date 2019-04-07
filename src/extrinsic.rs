@@ -1,5 +1,7 @@
-// Copyright 2017-2019 Parity Technologies (UK) Ltd.
-// This file is part of Substrate.
+// Copyright 2019 Supercomputing Systems AG
+//
+// Partial Authorship Parity Technologies (UK) Ltd.
+// This file is derived from Substrate.
 
 // Substrate is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,9 +15,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
-
-//////////////////////
-// inspired by unit tests in substrate/node/executor/lib.rs
 
 
 use runtime_io;

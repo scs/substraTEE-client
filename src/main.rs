@@ -1,4 +1,19 @@
+/*
+   Copyright 2019 Supercomputing Systems AG
 
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+*/
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -213,24 +228,6 @@ impl Handler for Client {
         };
 
         // FIXME: graceful error handling!!!
-/*
-        let _hexstr = value["params"]["result"]["number"].to_string();
-        //println!("block number hex: {:?}", _hexstr);
-        let re = Regex::new(r"[^a-zA-Z0-9]+").unwrap();
-        let mut _hexclean = String::from(re.replace_all(&_hexstr, ""));
-        //println!("block number hex clean: {:?}", _hexclean);
-        _hexclean.remove(0);
-        _hexclean.remove(0);
-        let _unhex = match i64::from_str_radix(&_hexclean, 16) {
-            Ok(int) => int,
-            _ => 0,
-        };
-            
-        self.blocknumber = _unhex;
-
-        println!("block number : {:?}", _unhex);
-        //self.out.close(CloseCode::Normal)
-        */
 
         Ok(())
     }
