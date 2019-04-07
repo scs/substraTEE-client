@@ -23,6 +23,7 @@ use runtime_primitives::{generic, traits};
 use node_primitives::Hash;
 //use twox_hash::{two};
 use primitives::twox_128;
+use primitive_types::U256;
 
 const REQUEST_GENESIS_HASH: u32     = 1;
 const REQUEST_METADATA: u32         = 2;
@@ -52,9 +53,9 @@ impl Client {
         }
     }
 
-    fn author_submitAndWatchExtrinsic(&mut self, nonce: u64) {
+    fn author_submitAndWatchExtrinsic(&mut self, nonce: U256) {
         // send a transaction
-        let xt= transfer("//Alice", "//Bob", 42, nonce, self.chain.genesis_hash);
+        let xt= transfer("//Alice", "//Bob", U256::from(42), nonce, self.chain.genesis_hash);
         println!("extrinsic: {:?}", xt);
 
         let mut xthex = hex::encode(xt.encode());
@@ -72,12 +73,15 @@ impl Client {
         self.out.send(jsonreq.to_string()).unwrap();
     }
 
-    fn state_getStorage(&mut self, module: &str, storage_key_name: &str, param: Vec<u8>) {
+    fn state_getStorage(&mut self, module: &str, storage_key_name: &str, param: Option<Vec<u8>>) {
         let mut key = module.as_bytes().to_vec();
         key.append(&mut vec!(' ' as u8));
         key.append(&mut storage_key_name.as_bytes().to_vec());
         //key.append(&mut vec!(' ' as u8));
-        key.append(&mut param.clone());
+        match param {
+            Some(par) => key.append(&mut par.clone()),
+            _ => println!("getStorage without params"),
+        }
         println!("will query storage for: {:?}", key);
         let mut keyhash = hex::encode(twox_128(&key));
         keyhash.insert_str(0, "0x");
@@ -151,7 +155,8 @@ impl Handler for Client {
                         // FIXME: some state machine logic would be better than directly calling
                         
                         let accountid = AccountId::from(AccountKeyring::Alice);
-                        self.state_getStorage("System", "AccountNonce", accountid.encode())  
+                        self.state_getStorage("System", "AccountNonce", Some(accountid.encode()));  
+                        // self.state_getStorage("Balances", "TransactionBaseFee", None)  //works
                     } else {
                         panic!("result should be 0x prefixed hex: {}", hexstr);
                     }
@@ -162,15 +167,15 @@ impl Handler for Client {
                         Some(res) => res.to_string(),
                         _ => "0x00".to_string(),
                     };
-
                     if hexstr.starts_with("0x") {
                         hexstr.remove(0);
                         hexstr.remove(0);  
-    /*                    let nonce = match u64::from_str_radix(&hexstr, 16) {
-                            Ok(int) => int,
-                            _ => 0,
-                        }; */
-                        let nonce = 0;
+                        println!("hex: {}", hexstr);
+                        let _unhex = hex::decode(&hexstr).unwrap();
+                        println!("unhex: {:?}", _unhex);
+                        let resnum = U256::from_little_endian(&mut &_unhex[..]);
+                        println!("number: {}", resnum);
+                        let nonce = resnum;
                         println!("nonce is {}", nonce);
                         self.author_submitAndWatchExtrinsic(nonce);
                     } else {

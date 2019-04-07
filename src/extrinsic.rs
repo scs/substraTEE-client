@@ -33,7 +33,7 @@ use substrate_bip39::mini_secret_from_entropy;
 use bip39::{Mnemonic, Language, MnemonicType};
 use rand::{RngCore, rngs::OsRng};
 use schnorrkel::keys::MiniSecretKey;
-
+use primitive_types::U256;
 const GENESIS_HASH: [u8; 32] = [69u8; 32];
 
 
@@ -174,14 +174,14 @@ fn sign(xt: CheckedExtrinsic, key: &sr25519::Pair, genesis_hash: Hash) -> Unchec
 
 
 // see https://wiki.parity.io/Extrinsic
-pub fn transfer(from: &str, to: &str, amount: u64, index: u64, genesis_hash: Hash) -> UncheckedExtrinsic {
+pub fn transfer(from: &str, to: &str, amount: U256, index: U256, genesis_hash: Hash) -> UncheckedExtrinsic {
 		let signer = Sr25519::pair_from_suri(from, Some(""));
 
 		let to = sr25519::Public::from_string(to).ok().or_else(||
 			sr25519::Pair::from_string(to, Some("")).ok().map(|p| p.public())
 		).expect("Invalid 'to' URI; expecting either a secret URI or a public URI.");
-		let amount = Balance::from(amount);
-		let index = Index::from(index);
+		let amount = Balance::from(amount.low_u128());
+		let index = Index::from(index.low_u64());
 		//let amount = str::parse::<Balance>("42")
 		//	.expect("Invalid 'amount' parameter; expecting an integer.");
 		//let index = str::parse::<Index>("0")
