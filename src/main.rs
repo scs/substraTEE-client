@@ -197,7 +197,16 @@ impl Handler for Client {
                 println!("no id field found in response. must be subscription");
                 println!("method: {:?}", value["method"].as_str());
                 match value["method"].as_str() {
-                    Some("author_extrinsicUpdate") => println!("author_extrinsicUpdate: {:?}", value["params"]["result"]),
+                    Some("author_extrinsicUpdate") => {
+                        match value["params"]["result"].as_str() {
+                            Some(res) => println!("author_extrinsicUpdate: {}", res),
+                            _ => {
+                                println!("author_extrinsicUpdate: finalized: {}", value["params"]["result"]["finalized"].as_str().unwrap());
+                                // we've reached the end of the flow. return
+                                self.out.close(CloseCode::Normal);
+                            },
+                        }
+                    }
                     _ => println!("unsupported method"),
                 }
             },
