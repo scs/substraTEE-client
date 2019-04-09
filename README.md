@@ -15,4 +15,4 @@ TODO:
   1. (maybe?) refactoring to per-use-case state machine architecture
   1. refactoring to ws-library / CLI binary
   1. (nice to have) dynamic API using metadata  
-
+  1. Another todo
