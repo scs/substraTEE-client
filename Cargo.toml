@@ -30,6 +30,7 @@ keyring = { package = "substrate-keyring", git = "https://github.com/scs/substra
 #test_client = { package = "substrate-test-client", git = "https://github.com/scs/substrate.git" }
 #twox-hash = "1.1.0"
 primitive-types = { version = "0.2", default-features = false, features = ["codec"] }
+clap = { version = "2.33", features = ["yaml"] }
 
 [features]
 default = ["std"]

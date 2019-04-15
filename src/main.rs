@@ -16,21 +16,21 @@
 */
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
+// #[macro_use]
 extern crate hex_literal;
 
-
-use serde_json::{json, Value};
+// use serde_json::{json, value};
+use serde_json::{json};
 
 use ws::{connect, Handler, Sender, Handshake, Result, Message, CloseCode};
-use std::i64;
-use regex::Regex;
+use std::{i64, net::SocketAddr};
+// use regex::Regex;
 use keyring::AccountKeyring;
 use node_primitives::AccountId;
 mod extrinsic;
 use crate::extrinsic::{transfer};
 
-#[macro_use]
+// #[macro_use]
 use hex;
 use parity_codec::{Encode, Decode};
 use transaction_pool::txpool::ChainApi as PoolChainApi;
@@ -39,6 +39,10 @@ use node_primitives::Hash;
 //use twox_hash::{two};
 use primitives::twox_128;
 use primitive_types::U256;
+
+#[macro_use]
+extern crate clap;
+use clap::App;
 
 const REQUEST_GENESIS_HASH: u32     = 1;
 const REQUEST_METADATA: u32         = 2;
@@ -77,12 +81,12 @@ impl Client {
 
         xthex.insert_str(0, "0x");
         let jsonreq = json!({
-            "method": "author_submitAndWatchExtrinsic", 
-            "params": [xthex], 
+            "method": "author_submitAndWatchExtrinsic",
+            "params": [xthex],
             "jsonrpc": "2.0",
             "id": REQUEST_TRANSFER.to_string(),
         });
-        
+
 
         println!("sending extrinsic: {}", jsonreq.to_string());
         self.out.send(jsonreq.to_string()).unwrap();
@@ -103,7 +107,7 @@ impl Client {
         println!("with storage key: {}", keyhash);
         let jsonreq = json!({
             "method": "state_getStorage",
-            "params": [keyhash], 
+            "params": [keyhash],
             //"params": ["0xc99f5446efa57788f39ab529311f4550"],
             "jsonrpc": "2.0",
             "id": REQUEST_GET_STORAGE.to_string(),
@@ -131,18 +135,18 @@ impl Handler for Client {
         // Now we don't need to call unwrap since `on_open` returns a `Result<()>`.
         // If this call fails, it will only result in this connection disconnecting.
         //self.out.send(r#"{"method": "chain_subscribeNewHead", "params": null, "jsonrpc": "2.0", "id": 0}"#);
-        
+
         //get genesis_hash
         //self.out.send(r#"{"method": "chain_getBlockHash", "params": [0], "jsonrpc": "2.0", "id": 0}"#);
         let jsonreq = json!({
-            "method": "chain_getBlockHash", 
-            "params": [0], 
+            "method": "chain_getBlockHash",
+            "params": [0],
             "jsonrpc": "2.0",
             "id": REQUEST_GENESIS_HASH.to_string(),
         });
         self.out.send(jsonreq.to_string()).unwrap();
        Ok(())
-        
+
     }
 
     // `on_message` is roughly equivalent to the Handler closure. It takes a `Message`
@@ -168,9 +172,9 @@ impl Handler for Client {
                         self.chain.genesis_hash = Hash::from(gh);
                         println!("genesis_hash is 0x{}", hexstr);
                         // FIXME: some state machine logic would be better than directly calling
-                        
+
                         let accountid = AccountId::from(AccountKeyring::Alice);
-                        self.state_getStorage("System", "AccountNonce", Some(accountid.encode()));  
+                        self.state_getStorage("System", "AccountNonce", Some(accountid.encode()));
                         // self.state_getStorage("Balances", "TransactionBaseFee", None)  //works
                     } else {
                         panic!("result should be 0x prefixed hex: {}", hexstr);
@@ -184,7 +188,7 @@ impl Handler for Client {
                     };
                     if hexstr.starts_with("0x") {
                         hexstr.remove(0);
-                        hexstr.remove(0);  
+                        hexstr.remove(0);
                         println!("hex: {}", hexstr);
                         let _unhex = hex::decode(&hexstr).unwrap();
                         println!("unhex: {:?}", _unhex);
@@ -234,6 +238,21 @@ impl Handler for Client {
 }
 
 fn main() {
-  // Now, instead of a closure, the Factory returns a new instance of our Handler.
-  connect("ws://127.0.0.1:9944", |out| Client::new(out)).unwrap()
+    let yml = load_yaml!("cli.yml");
+    let matches = App::from_yaml(yml).get_matches();
+
+    let cli_protocol = "ws";
+    let cli_address  = "127.0.0.1";
+    let mut cli_port = "9944";
+
+    if let Some(p) = matches.value_of("wsport") {
+        cli_port = p;
+    }
+
+    let cli_server = format!("{}://{}:{}", cli_protocol, cli_address, cli_port);
+
+    // Now, instead of a closure, the Factory returns a new instance of our Handler.
+    //   connect("ws://127.0.0.1:9944", |out| Client::new(out)).unwrap()
+    println!("Connecting to {}", cli_server);
+    connect(cli_server, |out| Client::new(out)).unwrap()
 }
